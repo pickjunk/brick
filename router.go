@@ -18,7 +18,7 @@ type Router struct {
 	*httprouter.Router
 }
 
-// New create a bgo Router
+// New create a brick Router
 func New() *Router {
 	return &Router{
 		Router: httprouter.New(),
@@ -80,7 +80,7 @@ type Middleware = func(context.Context, Handle)
 func (r *Router) Handle(method, path string, middlewaresAndHandle ...interface{}) *Router {
 	l := len(middlewaresAndHandle)
 	if l == 0 {
-		log.Panic().Msg("expect bgo.Handle")
+		log.Panic().Msg("expect brick.Handle")
 	}
 
 	var handle Handle
@@ -92,14 +92,14 @@ func (r *Router) Handle(method, path string, middlewaresAndHandle ...interface{}
 			h.ServeHTTP(Response(ctx), Request(ctx))
 		}
 	default:
-		log.Panic().Msgf("expect bgo.Handle or http.Handler, but get %T", middlewaresAndHandle[l-1])
+		log.Panic().Msgf("expect brick.Handle or http.Handler, but get %T", middlewaresAndHandle[l-1])
 	}
 
 	middlewares := r.middlewares
 	for i := 0; i < l-1; i++ {
 		middleware, ok := middlewaresAndHandle[i].(Middleware)
 		if !ok {
-			log.Panic().Msgf("expect bgo.Middleware, but get %T", middlewaresAndHandle[i])
+			log.Panic().Msgf("expect brick.Middleware, but get %T", middlewaresAndHandle[i])
 		}
 		middlewares = append(middlewares, middleware)
 	}

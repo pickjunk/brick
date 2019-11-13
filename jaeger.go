@@ -10,12 +10,12 @@ import (
 type jaegerLogger struct{}
 
 func (l *jaegerLogger) Error(msg string) {
-	log.Error().Str("component", "bgo.jaeger").Msg(msg)
+	log.Error().Str("component", "brick.jaeger").Msg(msg)
 }
 
 // Infof logs a message at info priority
 func (l *jaegerLogger) Infof(msg string, args ...interface{}) {
-	log.Debug().Str("component", "bgo.jaeger").Msgf(msg, args...)
+	log.Debug().Str("component", "brick.jaeger").Msgf(msg, args...)
 }
 
 // Jaeger setup a jaeger tracer

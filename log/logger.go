@@ -6,7 +6,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// Logger a custom logger for bgo, base on zerolog
+// Logger a custom logger for brick, base on zerolog
 type Logger struct {
 	zerolog.Logger
 }
@@ -17,7 +17,7 @@ var outer zerolog.Logger
 func init() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnixMs
 	inner = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).With().Timestamp().Logger()
-	inner = inner.With().Str("component", "bgo.log").Logger()
+	inner = inner.With().Str("component", "brick.log").Logger()
 
 	logPath := os.Getenv("LOG_FILE")
 	if logPath != "" {
@@ -28,7 +28,7 @@ func init() {
 		inner.Info().Str("file", logPath).Msg("log redirect")
 
 		outer = zerolog.New(f).With().Timestamp().Logger()
-		outer = outer.With().Str("component", "bgo.log").Logger()
+		outer = outer.With().Str("component", "brick.log").Logger()
 		outer = outer.Level(zerolog.InfoLevel)
 	} else {
 		outer = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).With().Timestamp().Logger()
