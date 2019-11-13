@@ -7,7 +7,7 @@ import (
 type innerKey string
 
 func (c innerKey) String() string {
-	return "bgo inner context key: " + string(c)
+	return "brick inner context key: " + string(c)
 }
 
 func withValue(ctx context.Context, key string, v interface{}) context.Context {
@@ -21,7 +21,7 @@ func value(ctx context.Context, key string) interface{} {
 type outerKey string
 
 func (c outerKey) String() string {
-	return "bgo outer context key: " + string(c)
+	return "brick outer context key: " + string(c)
 }
 
 // WithValue create a new context with a specific key & value
