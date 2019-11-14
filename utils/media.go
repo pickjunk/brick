@@ -65,11 +65,7 @@ func SaveImage(file File, scale string, path string) (string, error) {
 	)
 	_, err = cmd.CombinedOutput()
 	if err != nil {
-		if err.Error() != "" {
-			return "", err
-		}
-
-		return "", errors.New("ffmpeg required")
+		return "", err
 	}
 
 	return targetName, nil
@@ -129,11 +125,7 @@ func OptimizeImage(path string, scale string) (string, error) {
 	)
 	_, err := cmd.CombinedOutput()
 	if err != nil {
-		if err.Error() != "" {
-			return "", err
-		}
-
-		return "", errors.New("ffmpeg required")
+		return "", err
 	}
 
 	return target, nil
