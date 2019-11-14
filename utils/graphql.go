@@ -22,7 +22,7 @@ type Graphql struct {
 
 // Fetch execute a graphql api
 func (g *Graphql) Fetch(ctx context.Context, result interface{}) error {
-	if os.Getenv("ENV") != "production" {
+	if os.Getenv("DEBUG") == "true" {
 		req.Debug = true
 		defer func() {
 			req.Debug = false
