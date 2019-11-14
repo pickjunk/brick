@@ -63,9 +63,9 @@ func SaveImage(file File, scale string, path string) (string, error) {
 		"-vf", "scale="+scale+",setdar=1:1",
 		targetPath,
 	)
-	_, err = cmd.CombinedOutput()
+	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", err
+		return "", errors.New(string(out))
 	}
 
 	return targetName, nil
@@ -123,9 +123,9 @@ func OptimizeImage(path string, scale string) (string, error) {
 		"-vf", "scale=w="+wh[0]+":h="+wh[1]+":force_original_aspect_ratio=decrease",
 		target,
 	)
-	_, err := cmd.CombinedOutput()
+	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", err
+		return "", errors.New(string(out))
 	}
 
 	return target, nil
