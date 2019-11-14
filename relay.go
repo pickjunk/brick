@@ -49,12 +49,13 @@ func relay(ctx context.Context, schema *graphql.Schema) {
 
 	response := schema.Exec(ctx, params.Query, params.OperationName, params.Variables)
 
-	hasErrors := []string{}
+	is500 := false
+	errorMsg := []string{}
 
 	// https://github.com/graph-gophers/graphql-go/pull/207
 	if response.Errors != nil {
 		re := regexp.MustCompile(`{"code":\d+,"msg":".*?"}`)
-		panicMsg := "graphql: panic occurred"
+		panicMsg := "graphql: panic occurred: "
 
 		for _, rErr := range response.Errors {
 			// extract business error
@@ -63,15 +64,27 @@ func relay(ctx context.Context, schema *graphql.Schema) {
 				continue
 			}
 
-			errMsg := rErr.Message
-			hasErrors = append(hasErrors, errMsg)
+			is500 = true
 
-			// mask panic error
+			// handle panic error
 			if strings.Contains(rErr.Message, panicMsg) {
-				rErr.Message = panicMsg
+				// only log panic msg if it is not empty
+				if rErr.Message != panicMsg {
+					errMsg := rErr.Message
+					errorMsg = append(errorMsg, errMsg)
+				}
+
+				// mask panic response
+				rErr.Message = "masked panic"
 				continue
 			}
+
+			errorMsg = append(errorMsg, rErr.Message)
 		}
+	}
+
+	if len(errorMsg) > 0 {
+		log.Error().Err(errors.New(strings.Join(errorMsg, ", "))).Send()
 	}
 
 	responseJSON, err := json.Marshal(response)
@@ -80,8 +93,7 @@ func relay(ctx context.Context, schema *graphql.Schema) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if len(hasErrors) > 0 {
-		log.Error().Err(errors.New(strings.Join(hasErrors, ", "))).Send()
+	if is500 {
 		http.Error(w, string(responseJSON), http.StatusInternalServerError)
 	} else {
 		w.Write(responseJSON)
