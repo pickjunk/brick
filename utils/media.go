@@ -63,9 +63,13 @@ func SaveImage(file File, scale string, path string) (string, error) {
 		"-vf", "scale="+scale+",setdar=1:1",
 		targetPath,
 	)
-	out, err := cmd.CombinedOutput()
+	_, err = cmd.CombinedOutput()
 	if err != nil {
-		return "", errors.New(string(out))
+		if err.Error() != "" {
+			return "", err
+		}
+
+		return "", errors.New("ffmpeg required")
 	}
 
 	return targetName, nil
@@ -123,9 +127,13 @@ func OptimizeImage(path string, scale string) (string, error) {
 		"-vf", "scale=w="+wh[0]+":h="+wh[1]+":force_original_aspect_ratio=decrease",
 		target,
 	)
-	out, err := cmd.CombinedOutput()
+	_, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", errors.New(string(out))
+		if err.Error() != "" {
+			return "", err
+		}
+
+		return "", errors.New("ffmpeg required")
 	}
 
 	return target, nil
