@@ -14,12 +14,23 @@ type DB struct {
 	*dbr.Session
 }
 
+// Tx transaction instance, base on dbr.Tx
+type Tx struct {
+	*dbr.Tx
+}
+
+// Begin creates a transaction for the given session.
+func (db *DB) Begin() (*Tx, error) {
+	t, err := db.Session.Begin()
+	return &Tx{t}, err
+}
+
 // New dbr.Session
-// if optionalDSN is omited, mysql.dsn in config.yml will be used
-// Supported config(config.yml):
-// mysql.dsn - dsn for connection
-// mysql.maxIdleConns - max idle connections for pool
-// mysql.maxOpenConns - max open connections for pool
+// if optionalDSN is omited, config from ENV will be used
+// Supported ENV:
+// MYSQL_DSN - dsn for connection
+// MYSQL_MAX_IDLE - max idle connections for pool
+// MYSQL_MAX_OPEN - max open connections for pool
 func New(optionalDSN ...string) *DB {
 	var dsn string
 
