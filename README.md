@@ -231,23 +231,6 @@ func main() {
 }
 ```
 
-### Logger
-
-```golang
-package main
-
-import (
-  b "github.com/pickjunk/brick"
-)
-
-func main() {
-  logger := b.Log // logger is a *logrus.Logger
-
-  // log everything as logrus
-  // https://github.com/sirupsen/logrus
-}
-```
-
 ### Business Error
 
 ```golang
