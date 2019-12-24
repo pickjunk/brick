@@ -19,19 +19,19 @@ A Simple Golang HTTP Framework.
 package main
 
 import (
-	"context"
-	"os"
+  "context"
+  "os"
 
   b "github.com/pickjunk/brick"
-	bd "github.com/pickjunk/brick/dbr"
-	bl "github.com/pickjunk/brick/log"
+  bd "github.com/pickjunk/brick/dbr"
+  bl "github.com/pickjunk/brick/log"
 )
 
 var log = bl.New("brick.main")
 
 func init() {
   // comment out this line if you don't use dbr
-	os.Setenv("MYSQL_DSN", "root:123456@/?charset=utf8mb4")
+  os.Setenv("MYSQL_DSN", "root:123456@/?charset=utf8mb4")
 }
 
 func main() {
