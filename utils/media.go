@@ -58,7 +58,7 @@ func SaveImage(file File, scale string, path string) (string, error) {
 		"ffmpeg",
 		"-i", originPath,
 		"-y", "-strict", "-2",
-		"-vf", "\"scale="+scale+":force_original_aspect_ratio=decrease\"",
+		"-vf", "scale="+scale+":force_original_aspect_ratio=decrease",
 		targetPath,
 	)
 	_, err = cmd.CombinedOutput()
@@ -116,7 +116,7 @@ func OptimizeImage(path string, scale string) (string, error) {
 		"ffmpeg",
 		"-i", path,
 		"-y", "-strict", "-2",
-		"-vf", "\"scale="+scale+":force_original_aspect_ratio=decrease\"",
+		"-vf", "scale="+scale+":force_original_aspect_ratio=decrease",
 		target,
 	)
 	_, err := cmd.CombinedOutput()
@@ -178,7 +178,7 @@ func SaveVideo(file File, scale string, path string) (string, string, error) {
 		"-i", originPath,
 		"-y", "-strict", "-2",
 		"-ss", "00:00:00", "-t", "10",
-		"-vf", "\"scale="+scale+":force_original_aspect_ratio=decrease\"",
+		"-vf", "scale="+scale+":force_original_aspect_ratio=decrease",
 		targetPath,
 	)
 	_, err = cmd.CombinedOutput()
@@ -192,7 +192,7 @@ func SaveVideo(file File, scale string, path string) (string, string, error) {
 		"-i", targetPath,
 		"-ss", "00:00:01",
 		"-vframes", "1",
-		"-vf", "\"scale="+scale+":force_original_aspect_ratio=decrease\"",
+		"-vf", "scale="+scale+":force_original_aspect_ratio=decrease",
 		posterPath,
 	)
 	_, err = cmd.CombinedOutput()
