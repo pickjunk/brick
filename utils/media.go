@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/imroc/req"
 	uuid "github.com/satori/go.uuid"
@@ -35,13 +34,12 @@ func SaveImage(file File, scale string, path string) (string, error) {
 	}
 
 	// uuid
-	id := uuid.Must(uuid.NewV4(), nil)
-	uuidStr := id.String()
+	id := uuid.Must(uuid.NewV4(), nil).String()
 
 	// save origin file
-	originName := "o-" + uuidStr + ext
+	originName := "o-" + id + ext
 	originPath := path + originName
-	targetName := uuidStr + ext
+	targetName := id + ext
 	targetPath := path + targetName
 
 	originFile, err := os.Create(originPath)
@@ -60,7 +58,7 @@ func SaveImage(file File, scale string, path string) (string, error) {
 		"ffmpeg",
 		"-i", originPath,
 		"-y", "-strict", "-2",
-		"-vf", "scale="+scale+",setdar=1:1",
+		"-vf", "\"scale="+scale+":force_original_aspect_ratio=decrease\"",
 		targetPath,
 	)
 	_, err = cmd.CombinedOutput()
@@ -113,14 +111,12 @@ func OptimizeImage(path string, scale string) (string, error) {
 		return target, nil
 	}
 
-	wh := strings.Split(scale, ":")
-
 	// ffmpeg process
 	cmd := exec.Command(
 		"ffmpeg",
 		"-i", path,
 		"-y", "-strict", "-2",
-		"-vf", "scale=w="+wh[0]+":h="+wh[1]+":force_original_aspect_ratio=decrease",
+		"-vf", "\"scale="+scale+":force_original_aspect_ratio=decrease\"",
 		target,
 	)
 	_, err := cmd.CombinedOutput()
@@ -129,4 +125,82 @@ func OptimizeImage(path string, scale string) (string, error) {
 	}
 
 	return target, nil
+}
+
+// SaveVideo save video with a specific scale, depend on ffmpeg
+func SaveVideo(file File, scale string, path string) (string, string, error) {
+	buffer := make([]byte, 512)
+	file.Read(buffer)
+	filetype := http.DetectContentType(buffer)
+	var ext string
+	switch filetype {
+	case "video/x-flv":
+		ext = ".flv"
+	case "video/mp4":
+		ext = ".mp4"
+	case "video/3gpp":
+		ext = ".3gp"
+	case "video/quicktime":
+		ext = ".mov"
+	case "video/x-msvideo":
+		ext = ".avi"
+	case "video/x-ms-wmv":
+		ext = ".wmv"
+	default:
+		return "", "", errors.New("illegal video type")
+	}
+
+	// uuid
+	id := uuid.Must(uuid.NewV4(), nil).String()
+
+	// save origin file
+	originName := "o-" + id + ext
+	originPath := path + originName
+	targetName := id + ".mp4"
+	targetPath := path + targetName
+	posterName := path + ".jpg"
+	posterPath := path + posterName
+
+	originFile, err := os.Create(originPath)
+	if err != nil {
+		panic(err)
+	}
+	file.Seek(0, 0)
+	if _, err := io.Copy(originFile, file); err != nil {
+		panic(err)
+	}
+	originFile.Close()
+	defer os.Remove(originPath)
+
+	// ffmpeg process
+	cmd := exec.Command(
+		"ffmpeg",
+		"-i", originPath,
+		"-y", "-strict", "-2",
+		"-ss", "00:00:00", "-t", "10",
+		"-vf", "\"scale="+scale+":force_original_aspect_ratio=decrease\"",
+		targetPath,
+	)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Print(string(output))
+		panic(err)
+	}
+
+	// poster
+	cmd = exec.Command(
+		"ffmpeg",
+		"-i", targetPath,
+		"-ss", "00:00:01",
+		"-vframes", "1",
+		"-vf", "\"scale="+scale+":force_original_aspect_ratio=decrease\"",
+		posterPath,
+	)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		log.Print(string(output))
+		panic(err)
+	}
+
+	return targetName, posterName, nil
 }

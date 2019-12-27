@@ -19,25 +19,32 @@ A Simple Golang HTTP Framework.
 package main
 
 import (
-  "net/http"
+	"context"
+	"os"
 
-  dbr "github.com/gocraft/dbr"
-  httprouter "github.com/julienschmidt/httprouter"
   b "github.com/pickjunk/brick"
-  bd "github.com/pickjunk/brick/dbr"
+	bd "github.com/pickjunk/brick/dbr"
+	bl "github.com/pickjunk/brick/log"
 )
+
+var log = bl.New("brick.main")
+
+func init() {
+  // comment out this line if you don't use dbr
+	os.Setenv("MYSQL_DSN", "root:123456@/?charset=utf8mb4")
+}
 
 func main() {
   r := b.New()
 
-  r.GET("/:name", func(ctx context.Context) {
+  r.GET("/hello/:name", func(ctx context.Context) {
     w := b.Response(ctx) // http.ResponseWriter
     name := b.Param(ctx, "name") // httprouter.Params.ByName("name")
 
     w.Write([]byte("hello "+name+"!"))
   })
 
-  // comment out these code if you don't use dbr
+  // comment out code bellow if you don't use dbr
   rWithDbr := r.Prefix("/dbr").Middlewares(bd.Middleware(nil))
 
   rWithDbr.GET("/empty", func(ctx context.Context) {
@@ -47,7 +54,7 @@ func main() {
     var test struct{}
     err := db.Select(`"empty"`).LoadOneContext(ctx, &test)
     if err != nil {
-      brick.log.Panic(err)
+      log.Panic().Err(err).Send()
     }
 
     w.Write([]byte(`dbr: SELECT "empty"`))
