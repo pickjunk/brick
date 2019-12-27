@@ -163,11 +163,11 @@ func SaveVideo(file File, scale string, path string) (string, string, error) {
 
 	originFile, err := os.Create(originPath)
 	if err != nil {
-		panic(err)
+		return "", "", err
 	}
 	file.Seek(0, 0)
 	if _, err := io.Copy(originFile, file); err != nil {
-		panic(err)
+		return "", "", err
 	}
 	originFile.Close()
 	defer os.Remove(originPath)
@@ -181,10 +181,9 @@ func SaveVideo(file File, scale string, path string) (string, string, error) {
 		"-vf", "\"scale="+scale+":force_original_aspect_ratio=decrease\"",
 		targetPath,
 	)
-	output, err := cmd.CombinedOutput()
+	_, err = cmd.CombinedOutput()
 	if err != nil {
-		log.Print(string(output))
-		panic(err)
+		return "", "", err
 	}
 
 	// poster
@@ -196,10 +195,9 @@ func SaveVideo(file File, scale string, path string) (string, string, error) {
 		"-vf", "\"scale="+scale+":force_original_aspect_ratio=decrease\"",
 		posterPath,
 	)
-	output, err = cmd.CombinedOutput()
+	_, err = cmd.CombinedOutput()
 	if err != nil {
-		log.Print(string(output))
-		panic(err)
+		return "", "", err
 	}
 
 	return targetName, posterName, nil
