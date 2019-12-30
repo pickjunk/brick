@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"context"
 
 	"github.com/imroc/req"
 	uuid "github.com/satori/go.uuid"
@@ -20,7 +21,7 @@ type File interface {
 }
 
 // SaveImage save image with a specific scale, depend on ffmpeg
-func SaveImage(file File, scale string, path string) (string, error) {
+func SaveImage(ctx context.Context, file File, scale string, path string) (string, error) {
 	file.Seek(0, 0)
 	mime, err := mimetype.DetectReader(file)
 	if err != nil {
@@ -56,13 +57,15 @@ func SaveImage(file File, scale string, path string) (string, error) {
 	defer os.Remove(originPath)
 
 	// ffmpeg process
-	cmd := exec.Command(
+	cmd := exec.CommandContext(
+		ctx,
 		"ffmpeg",
 		"-i", originPath,
 		"-y", "-strict", "-2",
 		"-vf", "scale="+scale+":force_original_aspect_ratio=decrease",
 		targetPath,
 	)
+	log.Info().Str("cmd", cmd.String()).Send()
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", errors.New(string(output))
@@ -72,7 +75,7 @@ func SaveImage(file File, scale string, path string) (string, error) {
 }
 
 // DownloadImage download image with a specific scale, depend on ffmpeg
-func DownloadImage(url string, scale string, path string) (string, error) {
+func DownloadImage(ctx context.Context, url string, scale string, path string) (string, error) {
 	uuidStr := uuid.Must(uuid.NewV4(), nil).String()
 	tmpFile := path + uuidStr
 
@@ -95,7 +98,7 @@ func DownloadImage(url string, scale string, path string) (string, error) {
 	}
 	defer file.Close()
 
-	targetName, err := SaveImage(file, scale, path)
+	targetName, err := SaveImage(ctx, file, scale, path)
 	if err != nil {
 		return "", err
 	}
@@ -104,7 +107,7 @@ func DownloadImage(url string, scale string, path string) (string, error) {
 }
 
 // OptimizeImage make image limited in a specific scaling
-func OptimizeImage(path string, scale string) (string, error) {
+func OptimizeImage(ctx context.Context, path string, scale string) (string, error) {
 	dir := filepath.Dir(path)
 	target := dir + "/o-" + filepath.Base(path)
 
@@ -114,13 +117,15 @@ func OptimizeImage(path string, scale string) (string, error) {
 	}
 
 	// ffmpeg process
-	cmd := exec.Command(
+	cmd := exec.CommandContext(
+		ctx,
 		"ffmpeg",
 		"-i", path,
 		"-y", "-strict", "-2",
 		"-vf", "scale="+scale+":force_original_aspect_ratio=decrease",
 		target,
 	)
+	log.Info().Str("cmd", cmd.String()).Send()
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", errors.New(string(output))
@@ -130,7 +135,7 @@ func OptimizeImage(path string, scale string) (string, error) {
 }
 
 // SaveVideo save video with a specific scale, depend on ffmpeg
-func SaveVideo(file File, scale string, time int, path string) (string, string, error) {
+func SaveVideo(ctx context.Context, file File, scale string, time int, path string) (string, string, error) {
 	file.Seek(0, 0)
 	mime, err := mimetype.DetectReader(file)
 	if err != nil {
@@ -153,7 +158,7 @@ func SaveVideo(file File, scale string, time int, path string) (string, string, 
 	originPath := path + originName
 	targetName := id + ".mp4"
 	targetPath := path + targetName
-	posterName := path + ".jpg"
+	posterName := id + ".jpg"
 	posterPath := path + posterName
 
 	originFile, err := os.Create(originPath)
@@ -168,7 +173,8 @@ func SaveVideo(file File, scale string, time int, path string) (string, string, 
 	defer os.Remove(originPath)
 
 	// ffmpeg process
-	cmd := exec.Command(
+	cmd := exec.CommandContext(
+		ctx,
 		"ffmpeg",
 		"-i", originPath,
 		"-y", "-strict", "-2",
@@ -176,13 +182,15 @@ func SaveVideo(file File, scale string, time int, path string) (string, string, 
 		"-vf", "scale="+scale+":force_original_aspect_ratio=decrease",
 		targetPath,
 	)
+	log.Info().Str("cmd", cmd.String()).Send()
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", "", errors.New(string(output))
 	}
 
 	// poster
-	cmd = exec.Command(
+	cmd = exec.CommandContext(
+		ctx,
 		"ffmpeg",
 		"-i", targetPath,
 		"-ss", "00:00:01",
@@ -190,6 +198,7 @@ func SaveVideo(file File, scale string, time int, path string) (string, string, 
 		"-vf", "scale="+scale+":force_original_aspect_ratio=decrease",
 		posterPath,
 	)
+	log.Info().Str("cmd", cmd.String()).Send()
 	output, err = cmd.CombinedOutput()
 	if err != nil {
 		return "", "", errors.New(string(output))
