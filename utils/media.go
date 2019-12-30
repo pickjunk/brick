@@ -3,13 +3,13 @@ package utils
 import (
 	"errors"
 	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 
 	"github.com/imroc/req"
 	uuid "github.com/satori/go.uuid"
+	"github.com/gabriel-vasile/mimetype"
 )
 
 // File interface
@@ -20,17 +20,18 @@ type File interface {
 
 // SaveImage save image with a specific scale, depend on ffmpeg
 func SaveImage(file File, scale string, path string) (string, error) {
-	buffer := make([]byte, 512)
-	file.Read(buffer)
-	filetype := http.DetectContentType(buffer)
+	file.Seek(0, 0)
+	mime, err := mimetype.DetectReader(file)
+	if err != nil {
+		return "", err
+	}
+
 	var ext string
-	switch filetype {
-	case "image/jpeg", "image/jpg":
-		ext = ".jpg"
-	case "image/png":
-		ext = ".png"
+	switch mime.String() {
+	case "image/jpeg", "image/jpg", "image/png":
+		ext = mime.Extension()
 	default:
-		return "", errors.New("illegal image type")
+		return "", errors.New("image must be jpg or png")
 	}
 
 	// uuid
@@ -129,25 +130,18 @@ func OptimizeImage(path string, scale string) (string, error) {
 
 // SaveVideo save video with a specific scale, depend on ffmpeg
 func SaveVideo(file File, scale string, path string) (string, string, error) {
-	buffer := make([]byte, 512)
-	file.Read(buffer)
-	filetype := http.DetectContentType(buffer)
+	file.Seek(0, 0)
+	mime, err := mimetype.DetectReader(file)
+	if err != nil {
+		return "", "", err
+	}
+
 	var ext string
-	switch filetype {
-	case "video/x-flv":
-		ext = ".flv"
-	case "video/mp4":
-		ext = ".mp4"
-	case "video/3gpp":
-		ext = ".3gp"
-	case "video/quicktime":
-		ext = ".mov"
-	case "video/x-msvideo":
-		ext = ".avi"
-	case "video/x-ms-wmv":
-		ext = ".wmv"
+	switch mime.String() {
+	case "video/mpeg", "video/quicktime", "	video/mp4", "video/webm", "video/x-msvideo", "video/x-flv", "video/x-matroska":
+		ext = mime.Extension()
 	default:
-		return "", "", errors.New("illegal video type")
+		return "", "", errors.New("video must be mpeg, mov, mp4, webm, avi, flv or mkv")
 	}
 
 	// uuid
