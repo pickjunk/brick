@@ -4,6 +4,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.3.2 // indirect
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/gabriel-vasile/mimetype v1.0.1
 	github.com/go-mail/mail v2.3.1+incompatible
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gocraft/dbr v0.0.0-20190131145710-48a049970bd2
