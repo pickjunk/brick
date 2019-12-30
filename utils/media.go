@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"strconv"
 	"io"
 	"os"
 	"os/exec"
@@ -62,9 +63,9 @@ func SaveImage(file File, scale string, path string) (string, error) {
 		"-vf", "scale="+scale+":force_original_aspect_ratio=decrease",
 		targetPath,
 	)
-	_, err = cmd.CombinedOutput()
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", err
+		return "", errors.New(string(output))
 	}
 
 	return targetName, nil
@@ -120,16 +121,16 @@ func OptimizeImage(path string, scale string) (string, error) {
 		"-vf", "scale="+scale+":force_original_aspect_ratio=decrease",
 		target,
 	)
-	_, err := cmd.CombinedOutput()
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", err
+		return "", errors.New(string(output))
 	}
 
 	return target, nil
 }
 
 // SaveVideo save video with a specific scale, depend on ffmpeg
-func SaveVideo(file File, scale string, path string) (string, string, error) {
+func SaveVideo(file File, scale string, time int, path string) (string, string, error) {
 	file.Seek(0, 0)
 	mime, err := mimetype.DetectReader(file)
 	if err != nil {
@@ -138,7 +139,7 @@ func SaveVideo(file File, scale string, path string) (string, string, error) {
 
 	var ext string
 	switch mime.String() {
-	case "video/mpeg", "video/quicktime", "	video/mp4", "video/webm", "video/x-msvideo", "video/x-flv", "video/x-matroska":
+	case "video/mpeg", "video/quicktime", "video/mp4", "video/webm", "video/x-msvideo", "video/x-flv", "video/x-matroska":
 		ext = mime.Extension()
 	default:
 		return "", "", errors.New("video must be mpeg, mov, mp4, webm, avi, flv or mkv")
@@ -171,13 +172,13 @@ func SaveVideo(file File, scale string, path string) (string, string, error) {
 		"ffmpeg",
 		"-i", originPath,
 		"-y", "-strict", "-2",
-		"-ss", "00:00:00", "-t", "10",
+		"-ss", "00:00:00", "-t", strconv.Itoa(time),
 		"-vf", "scale="+scale+":force_original_aspect_ratio=decrease",
 		targetPath,
 	)
-	_, err = cmd.CombinedOutput()
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", "", err
+		return "", "", errors.New(string(output))
 	}
 
 	// poster
@@ -189,9 +190,9 @@ func SaveVideo(file File, scale string, path string) (string, string, error) {
 		"-vf", "scale="+scale+":force_original_aspect_ratio=decrease",
 		posterPath,
 	)
-	_, err = cmd.CombinedOutput()
+	output, err = cmd.CombinedOutput()
 	if err != nil {
-		return "", "", err
+		return "", "", errors.New(string(output))
 	}
 
 	return targetName, posterName, nil
