@@ -182,3 +182,33 @@ func WxSign(timestamp, nonce, encrypt, token string) string {
 	hash := sha1.Sum([]byte(str))
 	return hex.EncodeToString(hash[:])
 }
+
+// WxDecryptUserInfo 小程序UserInfo解密
+func WxDecryptUserInfo(data string, key string, iv string) (string, error) {
+	edata, err := base64.StdEncoding.DecodeString(data)
+	if err != nil {
+		return "", err
+	}
+	ekey, err := base64.StdEncoding.DecodeString(key)
+	if err != nil {
+		return "", err
+	}
+	eiv, err := base64.StdEncoding.DecodeString(iv)
+	if err != nil {
+		return "", err
+	}
+
+	// AES CBC 解密
+	block, err := aes.NewCipher(ekey)
+	if err != nil {
+		return "", err
+	}
+	cbc := cipher.NewCBCDecrypter(block, eiv)
+	target := make([]byte, len(edata))
+	cbc.CryptBlocks(target, edata)
+
+	// 解密后，取消补位
+	target = pkcs7Unpad(target, 32)
+
+	return string(target), nil
+}
